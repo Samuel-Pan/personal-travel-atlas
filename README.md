@@ -51,6 +51,10 @@ Next.js 16 要求 Node.js 20.9 或更高版本。
 
 ```powershell
 npm.cmd install
+
+# 从模板创建本机配置文件（.env 不会提交到 Git）
+Copy-Item .env.example .env
+
 npm.cmd run setup
 npm.cmd run dev
 ```
@@ -74,6 +78,42 @@ npm.cmd run start -- -p 3210
 npm.cmd run lint
 npm.cmd run build
 ```
+
+### 新电脑安装排查
+
+如果出现 `Environment variable not found: DATABASE_URL`，说明本机还没有 `.env`：
+
+```powershell
+Copy-Item .env.example .env
+npx.cmd prisma db push
+npm.cmd run db:seed
+```
+
+如果出现 `getaddrinfo ENOTFOUND binaries.prisma.sh`，说明 Prisma 引擎下载地址无法被当前网络解析。可以在当前 PowerShell 会话切换到镜像后重试：
+
+```powershell
+$env:PRISMA_ENGINES_MIRROR = "https://registry.npmmirror.com/-/binary/prisma"
+npx.cmd prisma generate
+npx.cmd prisma db push
+npm.cmd run db:seed
+```
+
+也可以先检查网络：
+
+```powershell
+Resolve-DnsName binaries.prisma.sh
+Test-NetConnection binaries.prisma.sh -Port 443
+```
+
+如果使用本地代理，请将代理的 HTTP 端口填入：
+
+```powershell
+$env:HTTPS_PROXY = "http://127.0.0.1:7890"
+$env:HTTP_PROXY = $env:HTTPS_PROXY
+npx.cmd prisma generate
+```
+
+地图同步完成但 Prisma 失败时，不需要重新下载地图，直接执行上面的 Prisma、数据库和 seed 命令即可。
 
 ## 目录结构
 
@@ -147,4 +187,3 @@ git status --short --ignored
 ## 数据来源
 
 行政区边界来自阿里云 DataV 开放地理数据接口。运行 `npm.cmd run map:sync` 后，地图数据会保存到本地，应用运行时不依赖外部地图服务。
-
