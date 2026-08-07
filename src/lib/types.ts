@@ -44,3 +44,20 @@ export type AtlasData = {
     photos: number;
   };
 };
+
+export type AtlasGeoFeature = {
+  type: "Feature";
+  properties: {
+    id?: number;
+    adcode?: number;
+    name?: string;
+    center?: [number, number];
+    provinceId?: number;
+  };
+  geometry: GeoJSON.Geometry;
+};
+
+export type AtlasGeoCollection = {
+  type: "FeatureCollection";
+  features: AtlasGeoFeature[];
+};

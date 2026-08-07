@@ -84,11 +84,12 @@ for (const province of provinceFeatures) {
   console.log(`${province.properties.name}: ${compact.length}`);
 }
 
-await writeFile(path.join(MAP_ROOT, "china-provinces.json"), JSON.stringify({ ...china, features: provinceFeatures }));
-await writeFile(
-  path.join(MAP_ROOT, "china-cities.json"),
-  JSON.stringify({ type: "FeatureCollection", features: cityFeatures }),
-);
+const provinceMapPayload = JSON.stringify({ ...china, features: provinceFeatures });
+const cityMapPayload = JSON.stringify({ type: "FeatureCollection", features: cityFeatures });
+await writeFile(path.join(MAP_ROOT, "china-provinces.json"), provinceMapPayload);
+await writeFile(path.join(MAP_ROOT, "china-provinces.txt"), provinceMapPayload);
+await writeFile(path.join(MAP_ROOT, "china-cities.json"), cityMapPayload);
+await writeFile(path.join(MAP_ROOT, "china-cities.txt"), cityMapPayload);
 await writeFile(
   path.join(DATA_ROOT, "administrative.json"),
   JSON.stringify({ provinces, cities }, null, 2),

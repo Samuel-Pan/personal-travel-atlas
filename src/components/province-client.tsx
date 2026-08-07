@@ -7,9 +7,9 @@ import { useState } from "react";
 import { AtlasMap } from "@/components/atlas-map";
 import { UploadDialog } from "@/components/upload-dialog";
 import { ThemeToggle } from "@/components/theme-toggle";
-import type { AtlasData, AtlasProvince } from "@/lib/types";
+import type { AtlasData, AtlasGeoCollection, AtlasProvince } from "@/lib/types";
 
-export function ProvinceClient({ data, province }: { data: AtlasData; province: AtlasProvince }) {
+export function ProvinceClient({ data, province, mapGeo }: { data: AtlasData; province: AtlasProvince; mapGeo: AtlasGeoCollection }) {
   const router = useRouter();
   const [uploadOpen, setUploadOpen] = useState(false);
   const [cityId, setCityId] = useState<number | null>(null);
@@ -53,7 +53,7 @@ export function ProvinceClient({ data, province }: { data: AtlasData; province: 
         </div>
       </section>
 
-      <AtlasMap data={scoped} mapUrl={`/maps/provinces/${province.id}.json`} provinceOverlay={false} wallPhotos={showWall} onUpload={openUpload} />
+      <AtlasMap data={scoped} mapUrl={`/maps/provinces/${province.id}.json`} geoData={mapGeo} provinceOverlay={false} wallPhotos={showWall} onUpload={openUpload} />
 
       <section className="city-ledger">
         <div className="section-heading"><div><p className="eyebrow">CITY LEDGER</p><h2>城市目录</h2></div><span>点击进入照片档案</span></div>

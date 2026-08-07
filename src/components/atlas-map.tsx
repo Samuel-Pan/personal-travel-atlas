@@ -6,22 +6,14 @@ import { ArrowUpRight, Camera, MapPin, Plus, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
-import type { AtlasCity, AtlasData, AtlasProvince, PhotoSummary } from "@/lib/types";
+import type { AtlasCity, AtlasData, AtlasGeoCollection, AtlasProvince, PhotoSummary } from "@/lib/types";
 import { PhotoLightbox } from "@/components/photo-lightbox";
-
-type GeoFeature = {
-  type: "Feature";
-  properties: { id?: number; adcode?: number; name?: string; center?: [number, number]; provinceId?: number };
-  geometry: GeoJSON.Geometry;
-};
-
-type GeoCollection = { type: "FeatureCollection"; features: GeoFeature[] };
 
 type GroupPosition = { left: number; top: number; side: "left" | "right" };
 type SavedGroupPosition = { version: 2; left: number; top: number };
 
 const GROUP_POSITIONS: GroupPosition[] = [
-  { left: 73, top: 7, side: "right" },
+  { left: 73, top: 10, side: "right" },
   { left: 74, top: 39, side: "right" },
   { left: 3, top: 43, side: "left" },
   { left: 7, top: 71, side: "left" },
@@ -236,21 +228,27 @@ function shortName(name: string) {
 
 export function AtlasMap({
   data,
-  mapUrl = "/maps/china-cities.json",
+  mapUrl = "/maps/china-cities.txt",
+  geoData,
+  provinceGeoData,
   provinceOverlay = true,
   wallPhotos = true,
   onUpload,
 }: {
   data: AtlasData;
   mapUrl?: string;
+  geoData?: AtlasGeoCollection;
+  provinceGeoData?: AtlasGeoCollection;
   provinceOverlay?: boolean;
   wallPhotos?: boolean;
   onUpload: (cityId?: number) => void;
 }) {
   const router = useRouter();
   const boardRef = useRef<HTMLDivElement>(null);
-  const [geo, setGeo] = useState<GeoCollection | null>(null);
-  const [provinceGeo, setProvinceGeo] = useState<GeoCollection | null>(null);
+  const [fetchedGeo, setFetchedGeo] = useState<AtlasGeoCollection | null>(null);
+  const [fetchedProvinceGeo, setFetchedProvinceGeo] = useState<AtlasGeoCollection | null>(null);
+  const geo = geoData ?? fetchedGeo;
+  const provinceGeo = provinceGeoData ?? fetchedProvinceGeo;
   const [boardSize, setBoardSize] = useState({ width: 1000, height: 720 });
   const [hovered, setHovered] = useState<AtlasCity | null>(null);
   const [hoveredProvince, setHoveredProvince] = useState<AtlasProvince | null>(null);
@@ -259,12 +257,23 @@ export function AtlasMap({
 
   useEffect(() => {
     let alive = true;
-    fetch(mapUrl).then((response) => response.json()).then((payload) => alive && setGeo(payload));
-    if (provinceOverlay) {
-      fetch("/maps/china-provinces.json").then((response) => response.json()).then((payload) => alive && setProvinceGeo(payload));
+    if (geoData && (!provinceOverlay || provinceGeoData)) return () => { alive = false; };
+    fetch(mapUrl).then((response) => {
+      if (!response.ok) throw new Error(`地图数据请求失败: ${response.status}`);
+      return response.json();
+    }).then((payload) => alive && setFetchedGeo(payload)).catch((error) => {
+      if (alive) console.error("无法加载城市地图数据", error);
+    });
+    if (provinceOverlay && !provinceGeoData) {
+      fetch("/maps/china-provinces.txt").then((response) => {
+        if (!response.ok) throw new Error(`省份边界请求失败: ${response.status}`);
+        return response.json();
+      }).then((payload) => alive && setFetchedProvinceGeo(payload)).catch((error) => {
+        if (alive) console.error("无法加载省份边界数据", error);
+      });
     }
     return () => { alive = false; };
-  }, [mapUrl, provinceOverlay]);
+  }, [geoData, mapUrl, provinceGeoData, provinceOverlay]);
 
   useEffect(() => {
     const board = boardRef.current;
@@ -282,8 +291,9 @@ export function AtlasMap({
     if (!geo) return null;
     // DataV administrative polygons use planar ring winding. A planar identity
     // projection avoids spherical winding rules turning polygons inside-out.
-    return geoIdentity().reflectY(true).fitExtent([[62, 44], [938, 674]], geo as never);
-  }, [geo]);
+    const extent = provinceOverlay ? [[145, 118], [855, 620]] : [[62, 44], [938, 674]];
+    return geoIdentity().reflectY(true).fitExtent(extent as [[number, number], [number, number]], geo as never);
+  }, [geo, provinceOverlay]);
   const path = useMemo(() => projection ? geoPath(projection) : null, [projection]);
   const photoGroups = useMemo(() => {
     if (!wallPhotos) return [];
@@ -308,6 +318,15 @@ export function AtlasMap({
       <div className="map-board" ref={boardRef}>
         <div className="board-pin pin-one" />
         <div className="board-pin pin-two" />
+        {provinceOverlay && (
+          <div className="atlas-stats compact-map-stats paper-card" aria-label="旅行统计">
+            <span className="tape" aria-hidden="true" />
+            <p>已探索</p>
+            <strong>{data.totals.visited}<small> / {data.totals.cities} 城市</small></strong>
+            <div className="progress-track"><span style={{ width: `${Math.min(100, (data.totals.visited / Math.max(data.totals.cities, 1)) * 100)}%` }} /></div>
+            <small>{data.totals.photos} 张记忆已归档</small>
+          </div>
+        )}
         <div className="map-caption">
           <span>CHINA · PERSONAL ARCHIVE</span>
           <strong>我的旅行足迹</strong>

@@ -7,9 +7,9 @@ import { useState } from "react";
 import { AtlasMap } from "@/components/atlas-map";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { UploadDialog } from "@/components/upload-dialog";
-import type { AtlasData } from "@/lib/types";
+import type { AtlasData, AtlasGeoCollection } from "@/lib/types";
 
-export function StatsClient({ data }: { data: AtlasData }) {
+export function StatsClient({ data, mapGeo, provinceGeo }: { data: AtlasData; mapGeo: AtlasGeoCollection; provinceGeo: AtlasGeoCollection }) {
   const router = useRouter();
   const [uploadOpen, setUploadOpen] = useState(false);
   const [cityId, setCityId] = useState<number | null>(null);
@@ -48,7 +48,7 @@ export function StatsClient({ data }: { data: AtlasData }) {
         <article className="stat-card paper-card"><Camera /><span>照片档案</span><strong>{data.totals.photos}</strong><p>张记忆</p></article>
       </section>
 
-      <AtlasMap data={data} wallPhotos={false} onUpload={openUpload} />
+      <AtlasMap data={data} geoData={mapGeo} provinceGeoData={provinceGeo} wallPhotos={false} onUpload={openUpload} />
 
       <section className="province-ranking">
         <div className="section-heading"><div><p className="eyebrow">PROVINCE COVERAGE</p><h2>省份探索进度</h2></div><span>按已探索城市排序</span></div>
