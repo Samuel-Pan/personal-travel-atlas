@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Province {
+  id        Int      @id
+  name      String
+  centerLng Float?
+  centerLat Float?
+  cities    City[]
+}
+
+model City {
+  id            Int            @id
+  name          String
+  provinceId    Int
+  longitude     Float?
+  latitude      Float?
+  showOnWall    Boolean        @default(true)
+  province      Province       @relation(fields: [provinceId], references: [id], onDelete: Cascade)
+  travelRecords TravelRecord[]
+
+  @@index([provinceId])
+}
+
+model TravelRecord {
+  id          String   @id @default(cuid())
+  cityId      Int
+  date        DateTime
+  description String?
+  createdAt   DateTime @default(now())
+  city        City     @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  photos      Photo[]
+
+  @@index([cityId, date])
+}
+
+model Photo {
+  id             String       @id @default(cuid())
+  travelRecordId String
+  path           String
+  filename       String
+  mimeType       String
+  latitude       Float?
+  longitude      Float?
+  takenTime      DateTime?
+  featured       Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  travelRecord   TravelRecord @relation(fields: [travelRecordId], references: [id], onDelete: Cascade)
+
+  @@index([travelRecordId])
+}

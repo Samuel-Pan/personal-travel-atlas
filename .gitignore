@@ -1,0 +1,16 @@
+node_modules/
+.next/
+.env
+.env.*
+!.env.example
+.env.local
+*.log
+travel-data/photos/*
+!travel-data/photos/.gitkeep
+travel-data/metadata/*.db
+travel-data/metadata/*.db-journal
+travel-data/metadata/*.db-shm
+travel-data/metadata/*.db-wal
+travel-data/trash/
+public/maps/
+src/data/administrative.json

@@ -1,0 +1,39 @@
+{
+  "name": "personal-travel-atlas",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "map:sync": "node scripts/sync-map-data.mjs",
+    "db:push": "prisma db push",
+    "db:seed": "tsx prisma/seed.ts",
+    "setup": "npm run map:sync && prisma generate && prisma db push && npm run db:seed"
+  },
+  "dependencies": {
+    "@prisma/client": "6.19.0",
+    "clsx": "2.1.1",
+    "d3-geo": "3.1.1",
+    "exifr": "7.1.3",
+    "framer-motion": "12.43.0",
+    "lucide-react": "0.468.0",
+    "next": "16.3.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/d3-geo": "3.1.0",
+    "@types/node": "22.10.2",
+    "@types/react": "19.0.3",
+    "@types/react-dom": "19.0.2",
+    "eslint": "9.17.0",
+    "eslint-config-next": "16.3.0",
+    "prisma": "6.19.0",
+    "tailwindcss": "4.3.3",
+    "tsx": "4.19.2",
+    "typescript": "5.7.2"
+  }
+}
